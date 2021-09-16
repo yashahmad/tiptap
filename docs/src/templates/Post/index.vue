@@ -44,7 +44,7 @@ export default {
           '@type': 'NewsArticle',
           mainEntityOfPage: {
             '@type': 'WebPage',
-            '@id': 'https://www.tiptap.dev',
+            '@id': 'https://gridsome.tiptap.dev',
           },
           headline: this.$page.post.title,
           image: [
@@ -61,7 +61,7 @@ export default {
             name: 'tiptap',
             logo: {
               '@type': 'ImageObject',
-              url: 'https://www.tiptap.dev/assets/img/logo.svg',
+              url: 'https://gridsome.tiptap.dev/assets/img/logo.svg',
             },
           },
         },
@@ -122,7 +122,7 @@ export default {
       const path = this.$route.path.replace(/\/$/, '')
 
       return path === ''
-        ? 'https://www.tiptap.dev/og-image.png'
+        ? 'https://gridsome.tiptap.dev/og-image.png'
         : `/images${path}/og-image.png`
     },
   },

@@ -247,7 +247,7 @@ export default {
         },
         {
           property: 'og:image',
-          content: 'https://www.tiptap.dev/images/og-image.png',
+          content: 'https://gridsome.tiptap.dev/images/og-image.png',
         },
         /* Twitter */
         {
@@ -260,7 +260,7 @@ export default {
         },
         {
           name: 'twitter:image',
-          content: 'https://www.tiptap.dev/images/og-image.png',
+          content: 'https://gridsome.tiptap.dev/images/og-image.png',
         },
         {
           name: 'twitter:site',
