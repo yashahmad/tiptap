@@ -1,3 +1,27 @@
+<script setup>
+import {
+  useEditor,
+  EditorContent,
+  BubbleMenu,
+  FloatingMenu,
+} from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+
+const editor = useEditor({
+  extensions: [
+    StarterKit,
+  ],
+  content: `
+    <p>
+      Try to select <em>this text</em> to see what we call the bubble menu.
+    </p>
+    <p>
+      Neat, isn’t it? Add an empty paragraph to see the floating menu.
+    </p>
+  `,
+})
+</script>
+
 <template>
   <div>
     <bubble-menu
@@ -37,50 +61,6 @@
     <editor-content :editor="editor" />
   </div>
 </template>
-
-<script>
-import {
-  Editor,
-  EditorContent,
-  BubbleMenu,
-  FloatingMenu,
-} from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-
-export default {
-  components: {
-    EditorContent,
-    BubbleMenu,
-    FloatingMenu,
-  },
-
-  data() {
-    return {
-      editor: null,
-    }
-  },
-
-  mounted() {
-    this.editor = new Editor({
-      extensions: [
-        StarterKit,
-      ],
-      content: `
-        <p>
-          Try to select <em>this text</em> to see what we call the bubble menu.
-        </p>
-        <p>
-          Neat, isn’t it? Add an empty paragraph to see the floating menu.
-        </p>
-      `,
-    })
-  },
-
-  beforeUnmount() {
-    this.editor.destroy()
-  },
-}
-</script>
 
 <style lang="scss">
 /* Basic editor styles */

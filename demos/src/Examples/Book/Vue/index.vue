@@ -1,3 +1,21 @@
+<script setup>
+import { useEditor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+import { content } from '../content.js'
+
+const editor = useEditor({
+  extensions: [
+    StarterKit,
+  ],
+  content,
+  editorProps: {
+    attributes: {
+      spellcheck: 'false',
+    },
+  },
+})
+</script>
+
 <template>
   <div>
     <div v-if="editor">
@@ -68,42 +86,6 @@
     <editor-content :editor="editor" />
   </div>
 </template>
-
-<script>
-import { Editor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import { content } from '../content.js'
-
-export default {
-  components: {
-    EditorContent,
-  },
-
-  data() {
-    return {
-      editor: null,
-    }
-  },
-
-  mounted() {
-    this.editor = new Editor({
-      extensions: [
-        StarterKit,
-      ],
-      content,
-      editorProps: {
-        attributes: {
-          spellcheck: 'false',
-        },
-      },
-    })
-  },
-
-  beforeUnmount() {
-    this.editor.destroy()
-  },
-}
-</script>
 
 <style lang="scss">
 /* Basic editor styles */

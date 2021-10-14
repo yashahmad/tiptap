@@ -1,15 +1,5 @@
-<template>
-  <div v-if="editor">
-    <button @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'is-active': editor.isActive('codeBlock') }">
-      code block
-    </button>
-
-    <editor-content :editor="editor" />
-  </div>
-</template>
-
-<script>
-import { Editor, EditorContent, VueNodeViewRenderer } from '@tiptap/vue-3'
+<script setup>
+import { useEditor, EditorContent, VueNodeViewRenderer } from '@tiptap/vue-3'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
@@ -24,36 +14,24 @@ import lowlight from 'lowlight'
 // import javascript from 'highlight.js/lib/languages/javascript'
 // lowlight.registerLanguage('javascript', javascript)
 
-export default {
-  components: {
-    EditorContent,
-  },
-
-  data() {
-    return {
-      editor: null,
-    }
-  },
-
-  mounted() {
-    this.editor = new Editor({
-      extensions: [
-        Document,
-        Paragraph,
-        Text,
-        CodeBlockLowlight
-          .extend({
-            addNodeView() {
-              return VueNodeViewRenderer(CodeBlockComponent)
-            },
-          })
-          .configure({ lowlight }),
-      ],
-      content: `
-        <p>
-          That’s a boring paragraph followed by a fenced code block:
-        </p>
-        <pre><code class="language-javascript">for (var i=1; i <= 20; i++)
+const editor = useEditor({
+  extensions: [
+    Document,
+    Paragraph,
+    Text,
+    CodeBlockLowlight
+      .extend({
+        addNodeView() {
+          return VueNodeViewRenderer(CodeBlockComponent)
+        },
+      })
+      .configure({ lowlight }),
+  ],
+  content: `
+    <p>
+      That’s a boring paragraph followed by a fenced code block:
+    </p>
+    <pre><code class="language-javascript">for (var i=1; i <= 20; i++)
 {
   if (i % 15 == 0)
     console.log("FizzBuzz");
@@ -64,18 +42,22 @@ export default {
   else
     console.log(i);
 }</code></pre>
-        <p>
-          Press Command/Ctrl + Enter to leave the fenced code block and continue typing in boring paragraphs.
-        </p>
-      `,
-    })
-  },
-
-  beforeUnmount() {
-    this.editor.destroy()
-  },
-}
+    <p>
+      Press Command/Ctrl + Enter to leave the fenced code block and continue typing in boring paragraphs.
+    </p>
+  `,
+})
 </script>
+
+<template>
+  <div v-if="editor">
+    <button @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'is-active': editor.isActive('codeBlock') }">
+      code block
+    </button>
+
+    <editor-content :editor="editor" />
+  </div>
+</template>
 
 <style lang="scss">
 /* Basic editor styles */

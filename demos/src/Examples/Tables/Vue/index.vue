@@ -1,3 +1,86 @@
+<script setup>
+import { useEditor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+import Table from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+
+const CustomTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      // extend the existing attributes …
+      ...this.parent?.(),
+
+      // and add a new one …
+      backgroundColor: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-background-color'),
+        renderHTML: attributes => {
+          return {
+            'data-background-color': attributes.backgroundColor,
+            style: `background-color: ${attributes.backgroundColor}`,
+          }
+        },
+      },
+    }
+  },
+})
+
+const editor = useEditor({
+  extensions: [
+    StarterKit,
+    Table.configure({
+      resizable: true,
+    }),
+    TableRow,
+    TableHeader,
+    // Default TableCell
+    // TableCell,
+    // Custom TableCell with backgroundColor attribute
+    CustomTableCell,
+  ],
+  content: `
+    <h3>
+      Have you seen our tables? They are amazing!
+    </h3>
+    <ul>
+      <li>tables with rows, cells and headers (optional)</li>
+      <li>support for <code>colgroup</code> and <code>rowspan</code></li>
+      <li>and even resizable columns (optional)</li>
+    </ul>
+    <p>
+      Here is an example:
+    </p>
+    <table>
+      <tbody>
+        <tr>
+          <th>Name</th>
+          <th colspan="3">Description</th>
+        </tr>
+        <tr>
+          <td>Cyndi Lauper</td>
+          <td>singer</td>
+          <td>songwriter</td>
+          <td>actress</td>
+        </tr>
+        <tr>
+          <td>Philipp Kühn</td>
+          <td>designer</td>
+          <td>developer</td>
+          <td>maker</td>
+        </tr>
+        <tr>
+          <td>Hans Pagel</td>
+          <td>wrote this</td>
+          <td colspan="2">that’s it</td>
+        </tr>
+      </tbody>
+    </table>
+  `,
+})
+</script>
+
 <template>
   <div v-if="editor">
     <button @click="editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()">
@@ -58,107 +141,6 @@
     <editor-content :editor="editor" />
   </div>
 </template>
-
-<script>
-import { Editor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Table from '@tiptap/extension-table'
-import TableRow from '@tiptap/extension-table-row'
-import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
-
-const CustomTableCell = TableCell.extend({
-  addAttributes() {
-    return {
-      // extend the existing attributes …
-      ...this.parent?.(),
-
-      // and add a new one …
-      backgroundColor: {
-        default: null,
-        parseHTML: element => element.getAttribute('data-background-color'),
-        renderHTML: attributes => {
-          return {
-            'data-background-color': attributes.backgroundColor,
-            style: `background-color: ${attributes.backgroundColor}`,
-          }
-        },
-      },
-    }
-  },
-})
-
-export default {
-  components: {
-    EditorContent,
-  },
-
-  data() {
-    return {
-      editor: null,
-    }
-  },
-
-  mounted() {
-    this.editor = new Editor({
-      extensions: [
-        StarterKit,
-        Table.configure({
-          resizable: true,
-        }),
-        TableRow,
-        TableHeader,
-        // Default TableCell
-        // TableCell,
-        // Custom TableCell with backgroundColor attribute
-        CustomTableCell,
-      ],
-      content: `
-        <h3>
-          Have you seen our tables? They are amazing!
-        </h3>
-        <ul>
-          <li>tables with rows, cells and headers (optional)</li>
-          <li>support for <code>colgroup</code> and <code>rowspan</code></li>
-          <li>and even resizable columns (optional)</li>
-        </ul>
-        <p>
-          Here is an example:
-        </p>
-        <table>
-          <tbody>
-            <tr>
-              <th>Name</th>
-              <th colspan="3">Description</th>
-            </tr>
-            <tr>
-              <td>Cyndi Lauper</td>
-              <td>singer</td>
-              <td>songwriter</td>
-              <td>actress</td>
-            </tr>
-            <tr>
-              <td>Philipp Kühn</td>
-              <td>designer</td>
-              <td>developer</td>
-              <td>maker</td>
-            </tr>
-            <tr>
-              <td>Hans Pagel</td>
-              <td>wrote this</td>
-              <td colspan="2">that’s it</td>
-            </tr>
-          </tbody>
-        </table>
-      `,
-    })
-  },
-
-  beforeUnmount() {
-    this.editor.destroy()
-  },
-}
-</script>
 
 <style lang="scss">
 /* Basic editor styles */
