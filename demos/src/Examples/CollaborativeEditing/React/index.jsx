@@ -109,16 +109,18 @@ export default () => {
   useEffect(() => {
     if (editor && currentUser) {
       localStorage.setItem('currentUser', JSON.stringify(currentUser))
-      editor.chain().focus().user(currentUser).run()
+      editor.commands.user(currentUser)
     }
   }, [editor, currentUser])
 
   const setName = useCallback(() => {
     const name = (window.prompt('Name') || '').trim().substring(0, 32)
 
-    if (name) {
-      return setCurrentUser({ ...currentUser, name })
+    if (!name) {
+      return
     }
+
+    setCurrentUser({ ...currentUser, name })
   }, [currentUser])
 
   return (

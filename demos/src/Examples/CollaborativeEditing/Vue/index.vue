@@ -1,27 +1,6 @@
-<template>
-  <div class="editor" v-if="editor">
-    <menu-bar class="editor__header" :editor="editor" />
-    <editor-content class="editor__content" :editor="editor" />
-    <div class="editor__footer">
-      <div :class="`editor__status editor__status--${status}`">
-        <template v-if="status === 'connected'">
-          {{ users.length }} user{{ users.length === 1 ? '' : 's' }} online in {{ room }}
-        </template>
-        <template v-else>
-          offline
-        </template>
-      </div>
-      <div class="editor__name">
-        <button @click="setName">
-          {{ currentUser.name }}
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script>
-import { Editor, EditorContent } from '@tiptap/vue-3'
+<script setup>
+import { ref, onBeforeUnmount } from 'vue'
+import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
@@ -46,110 +25,120 @@ const getRandomRoom = () => {
   ])
 }
 
-export default {
-  components: {
-    EditorContent,
-    MenuBar,
-  },
-
-  data() {
-    return {
-      currentUser: JSON.parse(localStorage.getItem('currentUser')) || {
-        name: this.getRandomName(),
-        color: this.getRandomColor(),
-      },
-      provider: null,
-      indexdb: null,
-      editor: null,
-      users: [],
-      status: 'connecting',
-      room: getRandomRoom(),
-    }
-  },
-
-  mounted() {
-    const ydoc = new Y.Doc()
-    this.provider = new WebsocketProvider('wss://websocket.tiptap.dev', this.room, ydoc)
-    this.provider.on('status', event => {
-      this.status = event.status
-    })
-
-    window.ydoc = ydoc
-
-    this.indexdb = new IndexeddbPersistence(this.room, ydoc)
-
-    this.editor = new Editor({
-      extensions: [
-        StarterKit.configure({
-          history: false,
-        }),
-        Highlight,
-        TaskList,
-        TaskItem,
-        Collaboration.configure({
-          document: ydoc,
-        }),
-        CollaborationCursor.configure({
-          provider: this.provider,
-          user: this.currentUser,
-          onUpdate: users => {
-            this.users = users
-          },
-        }),
-        CharacterCount.configure({
-          limit: 10000,
-        }),
-      ],
-    })
-
-    localStorage.setItem('currentUser', JSON.stringify(this.currentUser))
-  },
-
-  methods: {
-    setName() {
-      const name = (window.prompt('Name') || '')
-        .trim()
-        .substring(0, 32)
-
-      if (name) {
-        return this.updateCurrentUser({
-          name,
-        })
-      }
-    },
-
-    updateCurrentUser(attributes) {
-      this.currentUser = { ...this.currentUser, ...attributes }
-      this.editor.chain().focus().user(this.currentUser).run()
-
-      localStorage.setItem('currentUser', JSON.stringify(this.currentUser))
-    },
-
-    getRandomColor() {
-      return getRandomElement([
-        '#958DF1',
-        '#F98181',
-        '#FBBC88',
-        '#FAF594',
-        '#70CFF8',
-        '#94FADB',
-        '#B9F18D',
-      ])
-    },
-
-    getRandomName() {
-      return getRandomElement([
-        'Lea Thompson', 'Cyndi Lauper', 'Tom Cruise', 'Madonna', 'Jerry Hall', 'Joan Collins', 'Winona Ryder', 'Christina Applegate', 'Alyssa Milano', 'Molly Ringwald', 'Ally Sheedy', 'Debbie Harry', 'Olivia Newton-John', 'Elton John', 'Michael J. Fox', 'Axl Rose', 'Emilio Estevez', 'Ralph Macchio', 'Rob Lowe', 'Jennifer Grey', 'Mickey Rourke', 'John Cusack', 'Matthew Broderick', 'Justine Bateman', 'Lisa Bonet',
-      ])
-    },
-  },
-
-  beforeUnmount() {
-    this.editor.destroy()
-    this.provider.destroy()
-  },
+const getRandomColor = () => {
+  return getRandomElement([
+    '#958DF1',
+    '#F98181',
+    '#FBBC88',
+    '#FAF594',
+    '#70CFF8',
+    '#94FADB',
+    '#B9F18D',
+  ])
 }
+
+const getRandomName = () => {
+  return getRandomElement([
+    'Lea Thompson', 'Cyndi Lauper', 'Tom Cruise', 'Madonna', 'Jerry Hall', 'Joan Collins', 'Winona Ryder', 'Christina Applegate', 'Alyssa Milano', 'Molly Ringwald', 'Ally Sheedy', 'Debbie Harry', 'Olivia Newton-John', 'Elton John', 'Michael J. Fox', 'Axl Rose', 'Emilio Estevez', 'Ralph Macchio', 'Rob Lowe', 'Jennifer Grey', 'Mickey Rourke', 'John Cusack', 'Matthew Broderick', 'Justine Bateman', 'Lisa Bonet',
+  ])
+}
+
+const users = ref([])
+const status = ref('connecting')
+const room = ref(getRandomRoom())
+const ydoc = new Y.Doc()
+const provider = new WebsocketProvider('wss://websocket.tiptap.dev', room.value, ydoc)
+
+provider.on('status', event => {
+  status.value = event.status
+})
+
+const indexdb = new IndexeddbPersistence(room.value, ydoc)
+
+indexdb.on('synced', () => {
+  console.log('Loaded content from database  …')
+})
+
+const currentUser = ref(JSON.parse(localStorage.getItem('currentUser')) || {
+  name: getRandomName(),
+  color: getRandomColor(),
+})
+
+localStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+
+const editor = useEditor({
+  extensions: [
+    StarterKit.configure({
+      history: false,
+    }),
+    Highlight,
+    TaskList,
+    TaskItem,
+    Collaboration.configure({
+      document: ydoc,
+    }),
+    CollaborationCursor.configure({
+      provider,
+      user: currentUser.value,
+      onUpdate: items => {
+        users.value = items
+      },
+    }),
+    CharacterCount.configure({
+      limit: 10000,
+    }),
+  ],
+})
+
+const updateCurrentUser = attributes => {
+  currentUser.value = { ...currentUser.value, ...attributes }
+  editor.value.commands.user(currentUser.value)
+
+  localStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+}
+
+const setName = () => {
+  const name = (window.prompt('Name') || '')
+    .trim()
+    .substring(0, 32)
+
+  if (!name) {
+    return
+  }
+
+  updateCurrentUser({
+    name,
+  })
+}
+
+onBeforeUnmount(() => {
+  provider.destroy()
+})
+
+window.ydoc = ydoc
 </script>
+
+<template>
+  <div class="editor" v-if="editor">
+    <menu-bar class="editor__header" :editor="editor" />
+    <editor-content class="editor__content" :editor="editor" />
+    <div class="editor__footer">
+      <div :class="`editor__status editor__status--${status}`">
+        <template v-if="status === 'connected'">
+          {{ users.length }} user{{ users.length === 1 ? '' : 's' }} online in {{ room }}
+        </template>
+        <template v-else>
+          offline
+        </template>
+      </div>
+      <div class="editor__name">
+        <button @click="setName">
+          {{ currentUser.name }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="scss">
 .editor {

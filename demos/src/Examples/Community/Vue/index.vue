@@ -1,3 +1,42 @@
+<script setup>
+import { computed } from 'vue'
+import { useEditor, EditorContent } from '@tiptap/vue-3'
+import Document from '@tiptap/extension-document'
+import Paragraph from '@tiptap/extension-paragraph'
+import Text from '@tiptap/extension-text'
+import CharacterCount from '@tiptap/extension-character-count'
+import Mention from '@tiptap/extension-mention'
+import suggestion from './suggestion'
+
+const limit = 280
+
+const editor = useEditor({
+  extensions: [
+    Document,
+    Paragraph,
+    Text,
+    CharacterCount.configure({
+      limit,
+    }),
+    Mention.configure({
+      HTMLAttributes: {
+        class: 'mention',
+      },
+      suggestion,
+    }),
+  ],
+  content: `
+    <p>
+      What do you all think about the new <span data-mention data-id="Winona Ryder"></span> movie?
+    </p>
+  `,
+})
+
+const percentage = computed(() => {
+  return Math.round((100 / limit) * editor.value.getCharacterCount())
+})
+</script>
+
 <template>
   <div>
     <editor-content :editor="editor" />
@@ -39,63 +78,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import { Editor, EditorContent } from '@tiptap/vue-3'
-import Document from '@tiptap/extension-document'
-import Paragraph from '@tiptap/extension-paragraph'
-import Text from '@tiptap/extension-text'
-import CharacterCount from '@tiptap/extension-character-count'
-import Mention from '@tiptap/extension-mention'
-import suggestion from './suggestion'
-
-export default {
-  components: {
-    EditorContent,
-  },
-
-  data() {
-    return {
-      editor: null,
-      limit: 280,
-    }
-  },
-
-  mounted() {
-    this.editor = new Editor({
-      extensions: [
-        Document,
-        Paragraph,
-        Text,
-        CharacterCount.configure({
-          limit: this.limit,
-        }),
-        Mention.configure({
-          HTMLAttributes: {
-            class: 'mention',
-          },
-          suggestion,
-        }),
-      ],
-      content: `
-        <p>
-          What do you all think about the new <span data-mention data-id="Winona Ryder"></span> movie?
-        </p>
-      `,
-    })
-  },
-
-  computed: {
-    percentage() {
-      return Math.round((100 / this.limit) * this.editor.getCharacterCount())
-    },
-  },
-
-  beforeUnmount() {
-    this.editor.destroy()
-  },
-}
-</script>
 
 <style lang="scss">
 /* Basic editor styles */
