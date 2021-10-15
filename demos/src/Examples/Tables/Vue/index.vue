@@ -249,6 +249,10 @@ const editor = useEditor({
       background-color: #adf;
       pointer-events: none;
     }
+
+    p {
+      margin: 0;
+    }
   }
 }
 
