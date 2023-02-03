@@ -25,6 +25,7 @@
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
+  "umd": "dist/index.umd.js",
   "types": "dist/index.d.ts",
   "files": [
     "src",
@@ -43,7 +44,8 @@
   },
   "sideEffects": false,
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "build:rollup": "rollup -c"
   },
   "tsup": {
     "entry": [
