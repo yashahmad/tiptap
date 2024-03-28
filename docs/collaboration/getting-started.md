@@ -17,7 +17,7 @@ import { TiptapCollabProvider } from '@hocuspocus/provider'
 import * as Y from 'yjs'
 
 const provider = new TiptapCollabProvider({
-  appId: 'your_app_id', // get this at collab.tiptap.dev
+  appId: 'your_app_id', // get this at cloud.tiptap.dev
   name: 'your_document_name', // e.g. a uuid uuidv4();
   token: 'your_JWT', // see "Authentication" below
   document: new Y.Doc() // pass your existing doc, or leave this out and use provider.document
@@ -46,7 +46,7 @@ Authentication is done using [JSON Web Token (JWT)](https://en.wikipedia.org/wik
 
 ### JWT Generation
 
-To generate a JWT in the browser, you can use [http://jwtbuilder.jamiekurtz.com/](http://jwtbuilder.jamiekurtz.com/). You can leave all the fields as default, just replace the "Key" at the bottom with the secret from your [settings](https://collab.tiptap.dev/apps/settings).
+To generate a JWT in the browser, you can use [http://jwtbuilder.jamiekurtz.com/](http://jwtbuilder.jamiekurtz.com/). You can leave all the fields as default, just replace the "Key" at the bottom with the secret from your [settings](https://cloud.tiptap.dev/apps/settings).
 
 In Node.js, you can generate a JWT like this:
 

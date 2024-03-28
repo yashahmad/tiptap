@@ -11,7 +11,7 @@ URL:
 `https://YOUR_APP_ID.collab.tiptap.cloud/`
 
 Authentication is done using an API secret which you can find in
-the [settings](https://collab.tiptap.dev/) of your Tiptap Collab app. The secret must be sent as
+the [settings](https://cloud.tiptap.dev/apps/settings) of your Tiptap Collab app. The secret must be sent as
 an `Authorization` header.
 
 If your document identifier contains a slash (`/`), just make sure to encode it as `%2F`, e.g.
