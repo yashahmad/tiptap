@@ -15,7 +15,9 @@ import { splitExtensions } from './helpers/splitExtensions.js'
 import { Mark, NodeConfig } from './index.js'
 import { inputRulesPlugin } from './InputRule.js'
 import { pasteRulesPlugin } from './PasteRule.js'
-import { AnyConfig, Extensions, RawCommands } from './types.js'
+import {
+  AnyConfig, Extensions, RawCommands,
+} from './types.js'
 import { callOrReturn } from './utilities/callOrReturn.js'
 import { findDuplicates } from './utilities/findDuplicates.js'
 
@@ -32,6 +34,7 @@ export class ExtensionManager {
     this.editor = editor
     this.extensions = ExtensionManager.resolve(extensions)
     this.schema = getSchemaByResolvedExtensions(this.extensions, editor)
+    this.schema = this.createSchemaWithFallback(this.schema)
 
     this.extensions.forEach(extension => {
       // store extension storage in editor
@@ -389,5 +392,62 @@ export class ExtensionManager {
           return [extension.name, nodeview]
         }),
     )
+  }
+
+  /**
+   * Will create fallback marks and nodes for non-existing schema types to avoid content loss.
+   * @param schema The schema to create fallbacks for
+   * @param content THe editor content that should be checked for missing schema types
+   * @returns The ProseMirror schema with fallbacks
+   */
+  createSchemaWithFallback(schema: Schema) {
+    // const { content } = editor.options
+
+    /* try {
+      const json = typeof content === 'string' ? generateJSON(content, this.extensions) : content
+      const doc = schema.nodeFromJSON(json)
+
+      if (typeof content === 'string') {
+        const x = new DOMParser().parseFromString(content, 'text/html')
+
+        const nodes = []
+
+        const stepThroughNode = (node: HTMLElement) => {
+          if (node.nodeType === 1 && !['html', 'head', 'body'].includes(node.tagName.toLowerCase())) {
+            const attributeMap = Object.fromEntries(Object.keys(node.attributes).map(k => [node.attributes[k].name, node.attributes[k].value]))
+
+            nodes.push({ tag: node.tagName.toLowerCase(), attrs: attributeMap })
+          }
+
+          if (node.childNodes) {
+            node.childNodes.forEach(child => {
+              stepThroughNode(child as HTMLElement)
+            })
+          }
+        }
+
+        stepThroughNode(x as HTMLElement)
+
+        this.schema.spec.nodes.forEach((name, nodeVal) => {
+          if (nodeVal.parseDOM) {
+            console.log(nodeVal)
+            console.log(nodeVal.parseDOM[0].tag, nodes)
+          }
+        })
+        this.schema.spec.marks.forEach((name, nodeVal) => {
+          if (nodeVal.parseDOM) {
+            console.log(nodeVal.attrs)
+            console.log(nodeVal.parseDOM[0].tag, nodes)
+          }
+        })
+      }
+
+      return schema
+    } catch (e) {
+      console.warn(':(', e)
+      return schema
+    } */
+
+    return schema
   }
 }
