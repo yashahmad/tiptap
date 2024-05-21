@@ -5,86 +5,86 @@ import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import React, { useCallback, useEffect, useState } from 'react'
 
-const UnknownNode = Node.create({
-  name: 'unknownNode',
+// const UnknownNode = Node.create({
+//   name: 'unknownNode',
 
-  priority: Number.MIN_SAFE_INTEGER,
+//   priority: Number.MIN_SAFE_INTEGER,
 
-  addAttributes() {
-    return {
-      tagName: {
-        default: 'unknown-tag',
-        parseHTML: node => {
-          const tagName = node.tagName
+//   addAttributes() {
+//     return {
+//       tagName: {
+//         default: 'unknown-tag',
+//         parseHTML: node => {
+//           const tagName = node.tagName
 
-          if (tagName === 'UNKNOWN-NODE') {
-            return node.getAttribute('tagname')
-          }
-          return tagName
-        },
-      },
-      innerHTML: {
-        default: null,
-        parseHTML: node => {
-          const tagName = node.tagName
+//           if (tagName === 'UNKNOWN-NODE') {
+//             return node.getAttribute('tagname')
+//           }
+//           return tagName
+//         },
+//       },
+//       innerHTML: {
+//         default: null,
+//         parseHTML: node => {
+//           const tagName = node.tagName
 
-          if (tagName === 'UNKNOWN-NODE') {
-            return node.getAttribute('innerhtml')
-          }
-          return node.innerHTML
-        },
-      },
-      attributes: {
-        default: {},
-        parseHTML: node => {
-          const tagName = node.tagName
+//           if (tagName === 'UNKNOWN-NODE') {
+//             return node.getAttribute('innerhtml')
+//           }
+//           return node.innerHTML
+//         },
+//       },
+//       attributes: {
+//         default: {},
+//         parseHTML: node => {
+//           const tagName = node.tagName
 
-          if (tagName === 'UNKNOWN-NODE') {
-            return node.getAttribute('attributes')
-          }
+//           if (tagName === 'UNKNOWN-NODE') {
+//             return node.getAttribute('attributes')
+//           }
 
-          return JSON.stringify(node.getAttributeNames().reduce((acc, name) => {
-            acc[name] = node.getAttribute(name)
-            return acc
-          }, {}))
-        },
-      },
-    }
-  },
+//           return JSON.stringify(node.getAttributeNames().reduce((acc, name) => {
+//             acc[name] = node.getAttribute(name)
+//             return acc
+//           }, {}))
+//         },
+//       },
+//     }
+//   },
 
-  addOptions() {
-    return {
-      HTMLAttributes: {},
-    }
-  },
+//   addOptions() {
+//     return {
+//       HTMLAttributes: {},
+//     }
+//   },
 
-  group: 'block',
+//   group: 'block',
 
-  content: 'inline*',
+//   content: 'inline*',
 
-  parseHTML() {
-    return [
-      {
-        tag: 'unknown-node[tagName]',
-        getAttrs: dom => {
-          return {
-            attributes: dom.getAttribute('attributes'),
-            tagName: dom.getAttribute('tagName'),
-            innerHTML: dom.getAttribute('innerHTML'),
-          }
-        },
-      },
-      {
-        tag: '*',
-      },
-    ]
-  },
+//   parseHTML() {
+//     return [
+//       {
+//         tag: 'unknown-node[tagName]',
+//         getAttrs: dom => {
+//           return {
+//             attributes: dom.getAttribute('attributes'),
+//             tagName: dom.getAttribute('tagName'),
+//             innerHTML: dom.getAttribute('innerHTML'),
+//           }
+//         },
+//       },
+//       {
+//         tag: '*',
+//       },
+//     ]
+//   },
 
-  renderHTML({ HTMLAttributes }) {
-    return [HTMLAttributes.tagName, JSON.parse(HTMLAttributes.attributes), HTMLAttributes.innerHTML]
-  },
+//   renderHTML({ HTMLAttributes }) {
+//     return [HTMLAttributes.tagName, JSON.parse(HTMLAttributes.attributes), HTMLAttributes.innerHTML]
+//   },
 
-})
+// })
 const MyCustomNode = Node.create({
   name: 'myCustomNode',
   priority: 1000,
@@ -140,8 +140,8 @@ const MyCustomNode = Node.create({
   },
 
 })
-const isElementKnown = true
-const useErroredSave = true
+const isElementKnown = false
+const useErroredSave = false
 
 export default () => {
   const [json, setJson] = useState(null)
@@ -161,11 +161,12 @@ export default () => {
           Wow, this editor instance exports its content as JSON.
         </p>
         <my-custom-node attribute="abc">It’s a great way to store and load documents.</my-custom-node>
+        <my-custom-node attribute="xyz">More content</my-custom-node>
       `,
     extensions: [
       StarterKit,
       isElementKnown ? MyCustomNode : false,
-      UnknownNode,
+      // UnknownNode,
     ].filter(Boolean),
   })
 

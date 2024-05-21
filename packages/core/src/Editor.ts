@@ -10,16 +10,18 @@ import { CommandManager } from './CommandManager.js'
 import { EventEmitter } from './EventEmitter.js'
 import { ExtensionManager } from './ExtensionManager.js'
 import {
-  ClipboardTextSerializer, Commands, Editable, FocusEvents, Keymap, Tabindex, UnknownNode,
+  ClipboardTextSerializer, Commands, Editable, FocusEvents, Keymap, Tabindex,
 } from './extensions/index.js'
 import { createDocument } from './helpers/createDocument.js'
 import { getAttributes } from './helpers/getAttributes.js'
 import { getHTMLFromFragment } from './helpers/getHTMLFromFragment.js'
+import { getSchemaByResolvedExtensions } from './helpers/getSchemaByResolvedExtensions.js'
 import { getText } from './helpers/getText.js'
 import { getTextSerializersFromSchema } from './helpers/getTextSerializersFromSchema.js'
 import { isActive } from './helpers/isActive.js'
 import { isNodeEmpty } from './helpers/isNodeEmpty.js'
 import { resolveFocusPosition } from './helpers/resolveFocusPosition.js'
+import { Node } from './Node.js'
 import { NodePos } from './NodePos.js'
 import { style } from './style.js'
 import {
@@ -36,8 +38,10 @@ import { isFunction } from './utilities/isFunction.js'
 
 export * as extensions from './extensions/index.js'
 
-export interface HTMLElement {
-  editor?: Editor
+declare global {
+  interface HTMLElement {
+    editor?: Editor;
+  }
 }
 
 export class Editor extends EventEmitter<EditorEvents> {
@@ -244,7 +248,6 @@ export class Editor extends EventEmitter<EditorEvents> {
       ClipboardTextSerializer.configure({
         blockSeparator: this.options.coreExtensionOptions?.clipboardTextSerializer?.blockSeparator,
       }),
-      UnknownNode,
       Commands,
       FocusEvents,
       Keymap,
@@ -254,6 +257,93 @@ export class Editor extends EventEmitter<EditorEvents> {
       return ['extension', 'node', 'mark'].includes(extension?.type)
     })
 
+    // This is used to keep track of all nodes that are not yet registered as extensions.
+    const seenNodes: HTMLElement[] = []
+
+    // We make an extensions array just like if we were actually initializing the editor.
+    const extensions = ExtensionManager.resolve(allExtensions.concat(
+      // This extension is used to capture unknown nodes.
+      Node.create({
+        name: 'unknownNode',
+        priority: Number.MIN_SAFE_INTEGER,
+        // TODO
+        group: 'block',
+        // TODO
+        content: 'inline*',
+        parseHTML() {
+          return [
+            {
+              tag: '*',
+              getAttrs: node => {
+                if (typeof node === 'string') { return null }
+
+                seenNodes.push(node)
+                return {}
+              },
+            },
+          ]
+        },
+      }),
+    ))
+
+    // We get a schema from the resolved extensions.
+    const schema = getSchemaByResolvedExtensions(extensions, this)
+
+    // We run it through the parser to get the nodes that are not yet registered as extensions.
+    createDocument(this.options.content, schema, this.options.parseOptions)
+
+    // Now seenNodes contains all nodes that are not yet registered as extensions.
+    // So we can generate extensions for them.
+    // Make sure to merge the attributes of the seen nodes (if they have the same tag name).
+    const generatedExtensions = seenNodes.reduce((extensionMap, seenNode) => {
+      const tagName = seenNode.tagName.toLowerCase()
+      const attributes = new Set([...(extensionMap[tagName]?.attributes || []), ...seenNode.getAttributeNames()])
+
+      extensionMap[tagName] = {
+        attributes,
+        node: Node.create({
+          name: tagName,
+          priority: Number.MIN_SAFE_INTEGER,
+          group: 'block',
+          content: 'inline*',
+          addAttributes() {
+            return [...attributes].reduce((acc, name) => {
+              acc[name] = {
+                default: null,
+                parseHTML: node => {
+                  if (typeof node === 'string') { return null }
+                  return node.getAttribute(name)
+                },
+              }
+
+              return acc
+            }, {} as Record<string, {default: any; parseHTML: (node: string | HTMLElement) => any}>)
+          },
+          parseHTML() {
+            return [
+              {
+                tag: tagName,
+                getAttrs: node => {
+                  if (typeof node === 'string') { return null }
+                  return {}
+                },
+              },
+            ]
+          },
+
+          renderHTML({ HTMLAttributes }) {
+            return [tagName, HTMLAttributes, 0]
+          },
+        }),
+      }
+
+      return extensionMap
+    }, {} as Record<string, {node:Node; attributes: Set<string>}>)
+
+    // We now have all the extensions we need to initialize the editor.
+    allExtensions.push(...Object.values(generatedExtensions).map(({ node }) => node))
+
+    // Continue with the normal initialization.
     this.extensionManager = new ExtensionManager(allExtensions, this)
   }
 
