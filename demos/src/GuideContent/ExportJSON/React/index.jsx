@@ -142,27 +142,65 @@ const MyCustomNode = Node.create({
 })
 const isElementKnown = false
 const useErroredSave = false
+const useJSON = true
 
 export default () => {
   const [json, setJson] = useState(null)
   const editor = useEditor({
-    content: useErroredSave ? `
-        <p>
-          Wow, this editor instance exports its content as JSON.
-        </p>
-        <unknown-node
-          tagname="MY-CUSTOM-NODE"
-          innerhtml="It’s a great way to store and load documents."
-          attributes="{&quot;attribute&quot;:&quot;abc&quot;}"
-        >
-          We don't know what this is
-        </unknown-node>` : `
-        <p>
-          Wow, this editor instance exports its content as JSON.
-        </p>
-        <my-custom-node attribute="abc">It’s a great way to store and load documents.</my-custom-node>
-        <my-custom-node attribute="xyz">More content</my-custom-node>
-      `,
+    content: [useJSON && {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Wow, this editor instance exports its content as JSON.',
+            },
+          ],
+        },
+        {
+          type: 'myCustomNode',
+          attrs: {
+            attribute: 'abc',
+          },
+          content: [
+            {
+              type: 'text',
+              text: 'It’s a great way to store and load documents.',
+            },
+          ],
+        },
+        {
+          type: 'myCustomNode',
+          attrs: {
+            attribute: 'xyz',
+          },
+          content: [
+            {
+              type: 'text',
+              text: 'More content',
+            },
+          ],
+        },
+      ],
+    }, useErroredSave ? `
+    <p>
+      Wow, this editor instance exports its content as JSON.
+    </p>
+    <unknown-node
+      tagname="MY-CUSTOM-NODE"
+      innerhtml="It’s a great way to store and load documents."
+      attributes="{&quot;attribute&quot;:&quot;abc&quot;}"
+    >
+      We don't know what this is
+    </unknown-node>` : `
+    <p>
+      Wow, this editor instance exports its content as JSON.
+    </p>
+    <my-custom-node attribute="abc">It’s a great way to store and load documents.</my-custom-node>
+    <my-custom-node attribute="xyz">More content</my-custom-node>
+  `].find(Boolean),
     extensions: [
       StarterKit,
       isElementKnown ? MyCustomNode : false,
