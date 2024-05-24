@@ -49,7 +49,7 @@ export function createNodeFromContent(
     } catch (error) {
 
       if (options.errorOnInvalidContent) {
-        throw new Error('[tiptap error]: Invalid JSON content', { cause: error })
+        throw new Error('[tiptap error]: Invalid JSON content', { cause: error as Error })
       }
 
       console.warn('[tiptap warn]: Invalid content.', 'Passed value:', content, 'Error:', error)
