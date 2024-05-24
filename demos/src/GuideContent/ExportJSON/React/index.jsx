@@ -1,6 +1,6 @@
 import './styles.scss'
 
-import { elementFromString, Node } from '@tiptap/core'
+import { createPlaceholderExtensions, elementFromString, Node } from '@tiptap/core'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -142,70 +142,77 @@ const MyCustomNode = Node.create({
 })
 const isElementKnown = false
 const useErroredSave = false
-const useJSON = true
+const useJSON = false
 
-export default () => {
-  const [json, setJson] = useState(null)
-  const editor = useEditor({
-    content: [useJSON && {
-      type: 'doc',
+const jsonVersion = {
+  type: 'doc',
+  content: [
+    {
+      type: 'paragraph',
       content: [
         {
-          type: 'paragraph',
-          content: [
-            {
-              type: 'text',
-              text: 'Wow, this editor instance exports its content as JSON.',
-            },
-          ],
-        },
-        {
-          type: 'myCustomNode',
-          attrs: {
-            attribute: 'abc',
-          },
-          content: [
-            {
-              type: 'text',
-              text: 'It’s a great way to store and load documents.',
-            },
-          ],
-        },
-        {
-          type: 'myCustomNode',
-          attrs: {
-            attribute: 'xyz',
-          },
-          content: [
-            {
-              type: 'text',
-              text: 'More content',
-            },
-          ],
+          type: 'text',
+          text: 'Wow, this editor instance exports its content as JSON.',
         },
       ],
-    }, useErroredSave ? `
-    <p>
-      Wow, this editor instance exports its content as JSON.
-    </p>
-    <unknown-node
-      tagname="MY-CUSTOM-NODE"
-      innerhtml="It’s a great way to store and load documents."
-      attributes="{&quot;attribute&quot;:&quot;abc&quot;}"
-    >
-      We don't know what this is
-    </unknown-node>` : `
-    <p>
-      Wow, this editor instance exports its content as JSON.
-    </p>
-    <my-custom-node attribute="abc">It’s a great way to store and load documents.</my-custom-node>
-    <my-custom-node attribute="xyz">More content</my-custom-node>
-  `].find(Boolean),
-    extensions: [
+    },
+    {
+      type: 'myCustomNode',
+      attrs: {
+        attribute: 'abc',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'It’s a great way to store and load documents.',
+        },
+      ],
+    },
+    {
+      type: 'myCustomNode',
+      attrs: {
+        attribute: 'xyz',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'More content',
+        },
+      ],
+    },
+  ],
+}
+
+export default () => {
+  const content = [useJSON && jsonVersion, useErroredSave ? `
+  <p>
+    Wow, this editor instance exports its content as JSON.
+  </p>
+  <unknown-node
+    tagname="MY-CUSTOM-NODE"
+    innerhtml="It’s a great way to store and load documents."
+    attributes="{&quot;attribute&quot;:&quot;abc&quot;}"
+  >
+    We don't know what this is
+  </unknown-node>` : `
+  <p>
+    Wow, this editor instance exports its content as JSON.
+  </p>
+  <my-custom-node attribute="abc">It’s a great way to store and load documents.</my-custom-node>
+  <my-custom-node attribute="xyz">More content</my-custom-node>
+`].find(Boolean)
+  const [json, setJson] = useState(null)
+  const editor = useEditor({
+    content,
+    extensions: createPlaceholderExtensions(content, [
       StarterKit,
       isElementKnown ? MyCustomNode : false,
       // UnknownNode,
-    ].filter(Boolean),
+    ].filter(Boolean), {
+      fallback() {
+        return ['div', 'Sorry this content is not supported.']
+      },
+    }),
   })
 
   useEffect(() => {

@@ -292,12 +292,13 @@ export class Editor extends EventEmitter<EditorEvents> {
     // We run it through the parser to get the nodes that are not yet registered as extensions.
     createDocument(this.options.content, schema, this.options.parseOptions)
 
+    const foundNodes = seenNodes.map(node => ({ tagName: node.tagName.toLowerCase(), attributes: node.getAttributeNames() }))
     // Now seenNodes contains all nodes that are not yet registered as extensions.
+
     // So we can generate extensions for them.
     // Make sure to merge the attributes of the seen nodes (if they have the same tag name).
-    const generatedExtensions = seenNodes.reduce((extensionMap, seenNode) => {
-      const tagName = seenNode.tagName.toLowerCase()
-      const attributes = new Set([...(extensionMap[tagName]?.attributes || []), ...seenNode.getAttributeNames()])
+    const generatedExtensions = foundNodes.reduce((extensionMap, { tagName, attributes: seenAttributes }) => {
+      const attributes = new Set([...(extensionMap[tagName]?.attributes || []), ...seenAttributes])
 
       extensionMap[tagName] = {
         attributes,
