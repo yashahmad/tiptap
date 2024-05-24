@@ -1,5 +1,4 @@
 export * from './callOrReturn.js'
-export * from './createPlaceholderExtensions.js'
 export * from './createStyleTag.js'
 export * from './deleteProps.js'
 export * from './elementFromString.js'
