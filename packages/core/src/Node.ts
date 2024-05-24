@@ -23,6 +23,7 @@ import { mergeDeep } from './utilities/mergeDeep.js'
 
 declare module '@tiptap/core' {
   interface NodeConfig<Options = any, Storage = any> {
+    // @ts-ignore allow index signature
     [key: string]: any
 
     /**
@@ -253,29 +254,6 @@ declare module '@tiptap/core' {
             options: Options
             storage: Storage
             parent: ParentConfig<NodeConfig<Options, Storage>>['extendNodeSchema']
-          },
-          extension: Node,
-        ) => Record<string, any>)
-      | null
-
-    /**
-     * This function extends the schema of the mark.
-     * @example
-     * extendMarkSchema() {
-     *   return {
-     *     group: 'inline',
-     *     selectable: false,
-     *   }
-     * }
-     */
-    extendMarkSchema?:
-      | ((
-          this: {
-            name: string
-            options: Options
-            storage: Storage
-            parent: ParentConfig<NodeConfig<Options, Storage>>['extendMarkSchema']
-            editor?: Editor
           },
           extension: Node,
         ) => Record<string, any>)
@@ -777,17 +755,13 @@ export class Node<Options = any, Storage = any> {
   configure(options: Partial<Options> = {}) {
     // return a new instance so we can use the same extension
     // with different calls of `configure`
-    const extension = this.extend()
+    const extension = this.extend({
+      addOptions() {
+        return mergeDeep(this.parent?.() || {}, options) as Options
+      },
+    })
 
     extension.parent = this.parent
-    extension.options = mergeDeep(this.options as Record<string, any>, options) as Options
-
-    extension.storage = callOrReturn(
-      getExtensionField<AnyConfig['addStorage']>(extension, 'addStorage', {
-        name: extension.name,
-        options: extension.options,
-      }),
-    )
 
     return extension
   }
@@ -795,7 +769,7 @@ export class Node<Options = any, Storage = any> {
   extend<ExtendedOptions = Options, ExtendedStorage = Storage>(
     extendedConfig: Partial<NodeConfig<ExtendedOptions, ExtendedStorage>> = {},
   ) {
-    const extension = new Node<ExtendedOptions, ExtendedStorage>({ ...this.config, ...extendedConfig })
+    const extension = new Node<ExtendedOptions, ExtendedStorage>(extendedConfig)
 
     extension.parent = this
 

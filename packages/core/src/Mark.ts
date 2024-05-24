@@ -7,7 +7,6 @@ import { Editor } from './Editor.js'
 import { getExtensionField } from './helpers/getExtensionField.js'
 import { MarkConfig } from './index.js'
 import { InputRule } from './InputRule.js'
-import { Node } from './Node.js'
 import { PasteRule } from './PasteRule.js'
 import {
   AnyConfig,
@@ -23,6 +22,7 @@ import { mergeDeep } from './utilities/mergeDeep.js'
 
 declare module '@tiptap/core' {
   export interface MarkConfig<Options = any, Storage = any> {
+    // @ts-ignore allow index signature
     [key: string]: any
 
     /**
@@ -235,28 +235,6 @@ declare module '@tiptap/core' {
       storage: Storage
       parent: ParentConfig<MarkConfig<Options, Storage>>['addExtensions']
     }) => Extensions
-
-    /**
-     * This function extends the schema of the node.
-     * @example
-     * extendNodeSchema() {
-     *   return {
-     *     group: 'inline',
-     *     selectable: false,
-     *   }
-     * }
-     */
-    extendNodeSchema?:
-      | ((
-          this: {
-            name: string
-            options: Options
-            storage: Storage
-            parent: ParentConfig<MarkConfig<Options, Storage>>['extendNodeSchema']
-          },
-          extension: Node,
-        ) => Record<string, any>)
-      | null
 
     /**
      * This function extends the schema of the mark.
@@ -589,7 +567,6 @@ export class Mark<Options = any, Storage = any> {
     // with different calls of `configure`
     const extension = this.extend()
 
-    extension.parent = this.parent
     extension.options = mergeDeep(this.options as Record<string, any>, options) as Options
 
     extension.storage = callOrReturn(
@@ -605,7 +582,7 @@ export class Mark<Options = any, Storage = any> {
   extend<ExtendedOptions = Options, ExtendedStorage = Storage>(
     extendedConfig: Partial<MarkConfig<ExtendedOptions, ExtendedStorage>> = {},
   ) {
-    const extension = new Mark<ExtendedOptions, ExtendedStorage>({ ...this.config, ...extendedConfig })
+    const extension = new Mark<ExtendedOptions, ExtendedStorage>(extendedConfig)
 
     extension.parent = this
 
@@ -619,18 +596,18 @@ export class Mark<Options = any, Storage = any> {
       )
     }
 
-    extension.options = callOrReturn(
+    extension.options = mergeDeep(this.options as Record<string, any>, callOrReturn(
       getExtensionField<AnyConfig['addOptions']>(extension, 'addOptions', {
         name: extension.name,
       }),
-    )
+    )) as ExtendedOptions
 
-    extension.storage = callOrReturn(
+    extension.storage = mergeDeep(this.storage as Record<string, any>, callOrReturn(
       getExtensionField<AnyConfig['addStorage']>(extension, 'addStorage', {
         name: extension.name,
         options: extension.options,
       }),
-    )
+    )) as ExtendedStorage
 
     return extension
   }

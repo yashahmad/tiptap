@@ -20,6 +20,7 @@ import { mergeDeep } from './utilities/mergeDeep.js'
 
 declare module '@tiptap/core' {
   interface ExtensionConfig<Options = any, Storage = any> {
+    // @ts-ignore allow index signature
     [key: string]: any
 
     /**
@@ -455,17 +456,13 @@ export class Extension<Options = any, Storage = any> {
   configure(options: Partial<Options> = {}) {
     // return a new instance so we can use the same extension
     // with different calls of `configure`
-    const extension = this.extend()
+    const extension = this.extend({
+      addOptions() {
+        return mergeDeep(this.parent?.() || {}, options) as Options
+      },
+    })
 
     extension.parent = this.parent
-    extension.options = mergeDeep(this.options as Record<string, any>, options) as Options
-
-    extension.storage = callOrReturn(
-      getExtensionField<AnyConfig['addStorage']>(extension, 'addStorage', {
-        name: extension.name,
-        options: extension.options,
-      }),
-    )
 
     return extension
   }

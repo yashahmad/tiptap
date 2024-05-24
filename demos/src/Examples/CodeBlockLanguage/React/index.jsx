@@ -47,8 +47,21 @@ export default () => {
           addNodeView() {
             return ReactNodeViewRenderer(CodeBlockComponent)
           },
+          // addProseMirrorPlugins() {
+          //   console.log('custom', this, this.parent)
+          //   return [
+          //     ...this.parent(),
+          //   ]
+          // },
         })
-        .configure({ lowlight }),
+        .configure({ lowlight })
+        .extend({
+          addProseMirrorPlugins() {
+            return [
+              ...this.parent(),
+            ]
+          },
+        }),
     ],
     content: `
         <p>
